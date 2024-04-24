@@ -1,5 +1,6 @@
 package com.finance.controller;
 
+import com.finance.dto.ExpenseDTO;
 import com.finance.model.Expense;
 import com.finance.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,8 @@ public class ExpenseController {
     private ExpenseService expenseService;
 
     @PostMapping
-    public Expense addExpense(@RequestBody Expense expense) {
-        return expenseService.saveExpense(expense);
+    public Expense addExpense(@RequestBody ExpenseDTO expenseDTO) {
+        return expenseService.saveExpense(expenseDTO);
     }
 
     @GetMapping
