@@ -2,12 +2,15 @@ package com.finance.controller;
 
 import com.finance.dto.ExpenseDto;
 import com.finance.model.Expense;
+import com.finance.security.UserPrincipal;
 import com.finance.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/expenses")
@@ -16,28 +19,35 @@ public class ExpenseController {
     @Autowired
     private ExpenseService expenseService;
 
-    @PostMapping
-    public Expense addExpense(@RequestBody ExpenseDto expenseDTO) {
-        return expenseService.saveExpense(expenseDTO);
+    @PostMapping("/add")
+    public ResponseEntity<Expense> addExpense(@RequestBody ExpenseDto expenseDTO,
+                              @AuthenticationPrincipal UserPrincipal userPrincipal) {
+       Expense expense = expenseService.saveExpense(expenseDTO, userPrincipal);
+
+        return ResponseEntity.ok(expense);
     }
 
-    @GetMapping
-    public List<Expense> getAllExpenses() {
-        return expenseService.getAllExpenses();
+    @GetMapping("/all")
+    public ResponseEntity<List<Expense>> getAllExpenses(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        List<Expense> expenses = expenseService.getAllExpenses(userPrincipal);
+
+        return ResponseEntity.ok(expenses);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Expense> getExpenseById(@PathVariable Long id) {
-        try {
-            Expense expense = expenseService.getExpenseById(id);
-            return ResponseEntity.ok(expense);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Expense> getExpenseById(@PathVariable Long id,
+                                                  @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Optional<Expense> expense = expenseService.getExpenseById(id, userPrincipal);
+
+        return expense.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public void deleteExpense(@PathVariable Long id) {
-        expenseService.deleteExpense(id);
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long id,
+                              @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        expenseService.deleteExpense(id, userPrincipal);
+
+        return ResponseEntity.ok().build();
     }
 }
