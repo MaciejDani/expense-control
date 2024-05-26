@@ -1,15 +1,13 @@
 package com.finance.dto;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
 @Data
-public class ExpenseDTO {
+public class ExpenseDto {
 
     private BigDecimal amount;
     private LocalDateTime date;
