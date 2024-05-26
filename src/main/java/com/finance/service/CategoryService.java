@@ -1,8 +1,15 @@
 package com.finance.service;
 
+import com.finance.dto.CategoryDto;
+import com.finance.mapper.CategoryMapper;
 import com.finance.model.Category;
+import com.finance.model.User;
 import com.finance.repository.CategoryRepository;
+import com.finance.repository.UserRepository;
+import com.finance.security.UserPrincipal;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,20 +19,38 @@ import java.util.Optional;
 public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    public Category saveCategory(Category category) {
+    public Category saveCategory(CategoryDto categoryDto, UserPrincipal userPrincipal) {
+        Category category = CategoryMapper.fromDTO(categoryDto);
+
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        category.setUser(user);
         return categoryRepository.save(category);
     }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<Category> getAllCategories(UserPrincipal userPrincipal) {
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return categoryRepository.findByUser(user);
     }
 
-    public Optional<Category> getCategoryById(Long id) {
-        return categoryRepository.findById(id);
+    public Optional<Category> getCategoryById(Long id, UserPrincipal userPrincipal) {
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return categoryRepository.findByIdAndUser(id, user);
     }
 
-    public void deleteCategory(Long id) {
-        categoryRepository.deleteById(id);
+    public void deleteCategory(Long id, UserPrincipal userPrincipal) {
+        User user = userRepository.findById(userPrincipal.getId())
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        Optional<Category> category = categoryRepository.findByIdAndUser(id, user);
+        if (category.isPresent()) {
+            categoryRepository.deleteById(id);
+        } else {
+            throw new EntityNotFoundException("Category not found");
+        }
     }
 }

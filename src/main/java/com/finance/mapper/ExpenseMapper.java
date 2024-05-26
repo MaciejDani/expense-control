@@ -1,13 +1,13 @@
 package com.finance.mapper;
 
-import com.finance.dto.ExpenseDTO;
+import com.finance.dto.ExpenseDto;
 import com.finance.model.Category;
 import com.finance.model.Expense;
 
 public class ExpenseMapper {
 
-    public static ExpenseDTO toDTO(Expense expense) {
-        ExpenseDTO dto = new ExpenseDTO();
+    public static ExpenseDto toDTO(Expense expense) {
+        ExpenseDto dto = new ExpenseDto();
         dto.setAmount(expense.getAmount());
         dto.setDate(expense.getDate());
         dto.setDescription(expense.getDescription());
@@ -15,7 +15,7 @@ public class ExpenseMapper {
         return dto;
     }
 
-    public static Expense fromDTO(ExpenseDTO dto, Category category) {
+    public static Expense fromDTO(ExpenseDto dto, Category category) {
         Expense expense = new Expense();
         expense.setAmount(dto.getAmount());
         expense.setDate(dto.getDate());

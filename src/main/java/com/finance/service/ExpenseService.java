@@ -1,6 +1,6 @@
 package com.finance.service;
 
-import com.finance.dto.ExpenseDTO;
+import com.finance.dto.ExpenseDto;
 import com.finance.mapper.ExpenseMapper;
 import com.finance.model.Category;
 import com.finance.model.Expense;
@@ -18,7 +18,7 @@ public class ExpenseService {
     @Autowired
     private CategoryService categoryService;
 
-    public Expense saveExpense(ExpenseDTO expenseDTO) {
+    public Expense saveExpense(ExpenseDto expenseDTO) {
         Category category = categoryService.getCategoryById(expenseDTO.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         Expense expense = ExpenseMapper.fromDTO(expenseDTO, category);

@@ -44,13 +44,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 } catch (Exception e) {
                     System.out.println("Error in loadUserByUsername: " + e.getMessage());
                 }
-            } else {
-                System.out.println("JWT token is invalid or has no username");
             }
-        } else {
-            System.out.println("JWT token is not valid or missing");
         }
-
         filterChain.doFilter(request, response);
     }
 
