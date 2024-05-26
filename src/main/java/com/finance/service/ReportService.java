@@ -1,12 +1,13 @@
 package com.finance.service;
 
 import com.finance.dto.YearMonthDto;
-import com.finance.model.Expense;
-import com.finance.model.ExpenseComparison;
-import com.finance.model.MonthlyExpense;
-import com.finance.model.MonthlySummary;
+import com.finance.model.*;
 import com.finance.repository.ExpenseRepository;
+import com.finance.repository.UserRepository;
+import com.finance.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,8 +21,14 @@ public class ReportService {
     @Autowired
     private ExpenseRepository expenseRepository;
 
-    public MonthlySummary getMonthlySummary(int year, int month) {
-        List<Expense> expenses = expenseRepository.findByYearAndMonth(year, month);
+    @Autowired
+    private UserRepository userRepository;
+
+    public MonthlySummary getMonthlySummary(int year, int month, UserPrincipal userPrincipal) {
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        List<Expense> expenses = expenseRepository.findByYearAndMonthAndUser(year, month, user);
         Map<String, BigDecimal> categorySum = expenses.stream()
                 .collect(Collectors.groupingBy(expense -> expense.getCategory().getName(),
                         Collectors.reducing(BigDecimal.ZERO, Expense::getAmount, BigDecimal::add)));
@@ -29,21 +36,30 @@ public class ReportService {
         return new MonthlySummary(year, month, categorySum);
     }
 
-    public BigDecimal getTotalExpensesForMonth(int year, int month) {
-        return expenseRepository.findTotalExpensesByYearAndMonth(year, month);
+    public BigDecimal getTotalExpensesForMonth(int year, int month, UserPrincipal userPrincipal) {
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return expenseRepository.findTotalExpensesByYearAndMonthAndUser(year, month, user);
     }
 
-    public ExpenseComparison compareExpenses(int startYear, int startMonth, int endYear, int endMonth) {
-        BigDecimal startPeriodExpenses = expenseRepository.findTotalExpensesByYearAndMonth(startYear, startMonth);
-        BigDecimal endPeriodExpenses = expenseRepository.findTotalExpensesByYearAndMonth(endYear, endMonth);
+    public ExpenseComparison compareExpenses(int startYear, int startMonth, int endYear, int endMonth, UserPrincipal userPrincipal) {
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        BigDecimal startPeriodExpenses = expenseRepository.findTotalExpensesByYearAndMonthAndUser(startYear, startMonth, user);
+        BigDecimal endPeriodExpenses = expenseRepository.findTotalExpensesByYearAndMonthAndUser(endYear, endMonth, user);
 
         return new ExpenseComparison(startPeriodExpenses, endPeriodExpenses);
     }
 
-    public List<MonthlyExpense> getExpensesForMultipleMonths(List<YearMonthDto> yearMonthList) {
+    public List<MonthlyExpense> getExpensesForMultipleMonths(List<YearMonthDto> yearMonthList, UserPrincipal userPrincipal) {
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
        return yearMonthList.stream()
                 .map(ym -> {
-                    BigDecimal totalExpenses = expenseRepository.findTotalExpensesByYearAndMonth(ym.getYear(), ym.getMonth());
+                    BigDecimal totalExpenses = expenseRepository.findTotalExpensesByYearAndMonthAndUser(ym.getYear(), ym.getMonth(), user);
                     return new MonthlyExpense(ym.getYear(), ym.getMonth(), totalExpenses);
                 })
                .collect(Collectors.toList());
