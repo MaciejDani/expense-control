@@ -23,4 +23,19 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>(expenseNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<String> handleEmailAlreadyInUseException(EmailAlreadyInUseException emailAlreadyInUseException) {
+        return new ResponseEntity<>(emailAlreadyInUseException.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UsernameAlreadyTakenException.class)
+    public ResponseEntity<String> handleUsernameAlreadyTakenException(UsernameAlreadyTakenException usernameAlreadyTakenException) {
+        return new ResponseEntity<>(usernameAlreadyTakenException.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidLoginException.class)
+    public ResponseEntity<String> handleInvalidLoginException(InvalidLoginException invalidLoginException) {
+        return new ResponseEntity<>(invalidLoginException.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
 }
