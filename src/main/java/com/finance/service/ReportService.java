@@ -1,6 +1,7 @@
 package com.finance.service;
 
 import com.finance.dto.YearMonthDto;
+import com.finance.exception.UserNotFoundException;
 import com.finance.model.*;
 import com.finance.repository.ExpenseRepository;
 import com.finance.repository.UserRepository;
@@ -26,7 +27,7 @@ public class ReportService {
 
     public MonthlySummary getMonthlySummary(int year, int month, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         List<Expense> expenses = expenseRepository.findByYearAndMonthAndUser(year, month, user);
         Map<String, BigDecimal> categorySum = expenses.stream()
@@ -38,14 +39,14 @@ public class ReportService {
 
     public BigDecimal getTotalExpensesForMonth(int year, int month, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         return expenseRepository.findTotalExpensesByYearAndMonthAndUser(year, month, user);
     }
 
     public ExpenseComparison compareExpenses(int startYear, int startMonth, int endYear, int endMonth, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         BigDecimal startPeriodExpenses = expenseRepository.findTotalExpensesByYearAndMonthAndUser(startYear, startMonth, user);
         BigDecimal endPeriodExpenses = expenseRepository.findTotalExpensesByYearAndMonthAndUser(endYear, endMonth, user);
@@ -55,7 +56,7 @@ public class ReportService {
 
     public List<MonthlyExpense> getExpensesForMultipleMonths(List<YearMonthDto> yearMonthList, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
        return yearMonthList.stream()
                 .map(ym -> {

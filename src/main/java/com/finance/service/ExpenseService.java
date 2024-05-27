@@ -1,6 +1,9 @@
 package com.finance.service;
 
 import com.finance.dto.ExpenseDto;
+import com.finance.exception.CategoryNotFoundException;
+import com.finance.exception.ExpenseNotFoundException;
+import com.finance.exception.UserNotFoundException;
 import com.finance.mapper.ExpenseMapper;
 import com.finance.model.Category;
 import com.finance.model.Expense;
@@ -29,10 +32,10 @@ public class ExpenseService {
 
     public Expense saveExpense(ExpenseDto expenseDto, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         Category category = categoryRepository.findByIdAndUser(expenseDto.getCategoryId(), user)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+                .orElseThrow(CategoryNotFoundException::new);
 
         Expense expense = ExpenseMapper.fromDTO(expenseDto, category);
         expense.setUser(user);
@@ -42,27 +45,27 @@ public class ExpenseService {
 
     public List<Expense> getAllExpenses(UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         return expenseRepository.findByUser(user);
     }
 
     public Optional<Expense> getExpenseById(Long id, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         return expenseRepository.findByIdAndUser(id, user);
     }
 
     public void deleteExpense(Long id, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                        .orElseThrow(UserNotFoundException::new);
 
         Optional<Expense> expense = expenseRepository.findByIdAndUser(id, user);
         if (expense.isPresent()) {
             expenseRepository.deleteById(id);
         } else {
-            throw new EntityNotFoundException("Expense not found");
+            throw new ExpenseNotFoundException();
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.finance.service;
 
 import com.finance.dto.CategoryDto;
+import com.finance.exception.CategoryNotFoundException;
+import com.finance.exception.UserNotFoundException;
 import com.finance.mapper.CategoryMapper;
 import com.finance.model.Category;
 import com.finance.model.User;
@@ -26,31 +28,31 @@ public class CategoryService {
         Category category = CategoryMapper.fromDTO(categoryDto);
 
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
         category.setUser(user);
         return categoryRepository.save(category);
     }
 
     public List<Category> getAllCategories(UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
         return categoryRepository.findByUser(user);
     }
 
     public Optional<Category> getCategoryById(Long id, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
         return categoryRepository.findByIdAndUser(id, user);
     }
 
     public void deleteCategory(Long id, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                        .orElseThrow(UserNotFoundException::new);
         Optional<Category> category = categoryRepository.findByIdAndUser(id, user);
         if (category.isPresent()) {
             categoryRepository.deleteById(id);
         } else {
-            throw new EntityNotFoundException("Category not found");
+            throw new CategoryNotFoundException();
         }
     }
 }
