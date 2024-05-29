@@ -7,8 +7,6 @@ import com.finance.repository.ExpenseRepository;
 import com.finance.repository.UserRepository;
 import com.finance.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
