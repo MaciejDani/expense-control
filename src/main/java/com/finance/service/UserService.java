@@ -27,11 +27,11 @@ public class UserService {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-    public void registerUser(RegistrationDto registrationDto) {
-        if (existsByUsername(registrationDto.getUsername())) {
+    public String registerUser(RegistrationDto registrationDto) {
+        if (userRepository.existsByUsername(registrationDto.getUsername())) {
             throw new UsernameAlreadyTakenException();
         }
-        if (existsByEmail(registrationDto.getEmail())) {
+        if (userRepository.existsByEmail(registrationDto.getEmail())) {
             throw new EmailAlreadyInUseException();
         }
         User user = new User();
@@ -39,7 +39,8 @@ public class UserService {
         user.setPassword(encodePassword(registrationDto.getPassword()));
         user.setEmail(registrationDto.getEmail());
 
-        save(user);
+        userRepository.save(user);
+        return "User registered successfully";
     }
 
     public String authenticateUser(LoginDto loginDto) {
@@ -56,18 +57,6 @@ public class UserService {
         } catch (Exception ex) {
             throw new InvalidLoginException();
         }
-    }
-
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
-
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    public void save(User user) {
-        userRepository.save(user);
     }
 
     public String encodePassword(String password) {
