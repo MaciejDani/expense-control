@@ -149,5 +149,4 @@ public class CategoryServiceTest {
         verify(categoryRepository, never()).deleteById(anyLong());
     }
 
-
 }
