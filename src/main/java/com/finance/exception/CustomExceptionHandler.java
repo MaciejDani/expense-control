@@ -38,4 +38,9 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>(invalidLoginException.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(BudgetNotFoundException.class)
+    public ResponseEntity<String> handleBudgetNotFoundException(BudgetNotFoundException budgetNotFoundException) {
+        return new ResponseEntity<>(budgetNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
 }
