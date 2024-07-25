@@ -1,22 +1,25 @@
 package com.finance.service;
 
 import com.finance.dto.ExpenseDto;
+import com.finance.exception.BudgetNotFoundException;
 import com.finance.exception.CategoryNotFoundException;
 import com.finance.exception.ExpenseNotFoundException;
 import com.finance.exception.UserNotFoundException;
 import com.finance.mapper.ExpenseMapper;
+import com.finance.model.Budget;
 import com.finance.model.Category;
 import com.finance.model.Expense;
 import com.finance.model.User;
+import com.finance.repository.BudgetRepository;
 import com.finance.repository.CategoryRepository;
 import com.finance.repository.ExpenseRepository;
 import com.finance.repository.UserRepository;
 import com.finance.security.UserPrincipal;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +32,8 @@ public class ExpenseService {
     private CategoryRepository categoryRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private BudgetRepository budgetRepository;
 
     public Expense saveExpense(ExpenseDto expenseDto, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
@@ -39,6 +44,8 @@ public class ExpenseService {
 
         Expense expense = ExpenseMapper.fromDTO(expenseDto, category);
         expense.setUser(user);
+
+        updateBudgetAfterExpense(user, expense.getDate(), expense.getAmount().negate());
 
         return expenseRepository.save(expense);
     }
@@ -59,13 +66,28 @@ public class ExpenseService {
 
     public void deleteExpense(Long id, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
-                        .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(UserNotFoundException::new);
 
-        Optional<Expense> expense = expenseRepository.findByIdAndUser(id, user);
-        if (expense.isPresent()) {
+        Optional<Expense> optionalExpense = expenseRepository.findByIdAndUser(id, user);
+        if (optionalExpense.isPresent()) {
+            Expense expense = optionalExpense.get();
+
+            updateBudgetAfterExpense(user, expense.getDate(), expense.getAmount());
+
             expenseRepository.deleteById(id);
         } else {
             throw new ExpenseNotFoundException();
         }
+    }
+
+    private void updateBudgetAfterExpense(User user, LocalDateTime date, BigDecimal amountChange) {
+        int year = date.getYear();
+        int month = date.getMonthValue();
+
+        Budget budget = budgetRepository.findByUserAndYearAndMonth(user, year, month)
+                .orElseThrow(BudgetNotFoundException::new);
+
+        budget.setAmount(budget.getAmount().add(amountChange));
+        budgetRepository.save(budget);
     }
 }
