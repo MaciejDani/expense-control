@@ -41,14 +41,15 @@ public class ReportServiceTest {
         userPrincipal = new UserPrincipal(1L, "username", "password", List.of());
         user = new User();
         user.setId(1L);
+        user.setDefaultCurrency("USD");
     }
 
     @Test
     public void testGetMonthlySummary() {
         Category foodCategory = new Category(1L, "Food", "Food Expenses", user);
         List<Expense> expenses = List.of(
-                new Expense(1L, foodCategory, new BigDecimal("10.00"), LocalDateTime.now(), "Lunch", user),
-                new Expense(2L, foodCategory, new BigDecimal("20.00"), LocalDateTime.now(), "Dinner", user)
+                new Expense(1L, foodCategory, new BigDecimal("10.00"), LocalDateTime.now(), "Lunch", "USD", user),
+                new Expense(2L, foodCategory, new BigDecimal("20.00"), LocalDateTime.now(), "Dinner", "USD", user)
         );
 
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
@@ -161,8 +162,5 @@ public class ReportServiceTest {
 
         verify(userRepository).findById(userPrincipal.getId());
     }
-
-
-
 
 }

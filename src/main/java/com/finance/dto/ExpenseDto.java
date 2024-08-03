@@ -13,4 +13,6 @@ public class ExpenseDto {
     private LocalDateTime date;
     private String description;
     private Long categoryId;
+    private String currency;
+    private Long userId;
 }

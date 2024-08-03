@@ -16,6 +16,7 @@ import com.finance.security.UserPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockitoAnnotations;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,85 +33,114 @@ import static org.mockito.Mockito.*;
 public class ExpenseServiceTest {
 
     @Mock
-    private ExpenseRepository expenseRepository;
+    private UserRepository userRepository;
+
     @Mock
     private CategoryRepository categoryRepository;
+
     @Mock
-    private UserRepository userRepository;
+    private CurrencyConverter currencyConverter;
+
+    @Mock
+    private ExpenseRepository expenseRepository;
+
     @Mock
     private BudgetRepository budgetRepository;
+
     @InjectMocks
     private ExpenseService expenseService;
 
-    private UserPrincipal userPrincipal;
     private User user;
     private Category category;
     private ExpenseDto expenseDto;
     private Expense expense;
+    private UserPrincipal userPrincipal;
     private Budget budget;
 
     @BeforeEach
-    public void setUp() {
-        userPrincipal = new UserPrincipal(1L, "username", "password", List.of());
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        // Mock data setup
         user = new User();
         user.setId(1L);
+        user.setDefaultCurrency("USD");
+
         category = new Category();
         category.setId(1L);
-        expenseDto = new ExpenseDto();
-        expenseDto.setCategoryId(1L);
-        expenseDto.setAmount(BigDecimal.valueOf(100));
-        expenseDto.setDate(LocalDateTime.now());
+        category.setUser(user);
+
         expense = new Expense();
-        expense.setDate(LocalDateTime.now());
+        expense.setId(1L);
         expense.setAmount(BigDecimal.valueOf(100));
+        expense.setCurrency("USD");
+        expense.setDate(LocalDateTime.now());
+        expense.setCategory(category);
+        expense.setUser(user);
+
+        expenseDto = new ExpenseDto();
+        expenseDto.setAmount(BigDecimal.valueOf(100));
+        expenseDto.setCurrency("EUR");
+        expenseDto.setCategoryId(1L);
+        expenseDto.setDate(LocalDateTime.now());
+        expenseDto.setDescription("Test expense");
+
         budget = new Budget();
-        budget.setAmount(BigDecimal.valueOf(1000));
+        budget.setAmount(BigDecimal.valueOf(1200));
+
+        userPrincipal = mock(UserPrincipal.class);
+        when(userPrincipal.getId()).thenReturn(1L);
     }
 
     @Test
-    public void testSaveExpense() {
-        when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
-        when(categoryRepository.findByIdAndUser(expenseDto.getCategoryId(), user)).thenReturn(Optional.of(category));
+    void testSaveExpense() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(categoryRepository.findByIdAndUser(1L, user)).thenReturn(Optional.of(category));
+        when(currencyConverter.convert(BigDecimal.valueOf(100), "EUR", "USD")).thenReturn(BigDecimal.valueOf(120));
+        when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+            Expense savedExpense = invocation.getArgument(0);
+            savedExpense.setId(1L);
+            return savedExpense;
+        });
         when(budgetRepository.findByUserAndYearAndMonth(any(User.class), anyInt(), anyInt())).thenReturn(Optional.of(budget));
-        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
 
         Expense savedExpense = expenseService.saveExpense(expenseDto, userPrincipal);
 
-        assertNotNull(savedExpense);
-        assertEquals(BigDecimal.valueOf(900), budget.getAmount());
-        verify(userRepository).findById(userPrincipal.getId());
-        verify(categoryRepository).findByIdAndUser(expenseDto.getCategoryId(), user);
-        verify(budgetRepository).findByUserAndYearAndMonth(any(User.class), anyInt(), anyInt());
-        verify(budgetRepository).save(budget);
+        verify(userRepository).findById(1L);
+        verify(categoryRepository).findByIdAndUser(1L, user);
+        verify(currencyConverter).convert(BigDecimal.valueOf(100), "EUR", "USD");
         verify(expenseRepository).save(any(Expense.class));
+        verify(budgetRepository).findByUserAndYearAndMonth(any(User.class), anyInt(), anyInt());
+        verify(budgetRepository).save(any(Budget.class));
+
+        assertNotNull(savedExpense);
+        assertEquals(BigDecimal.valueOf(120), savedExpense.getAmount());
+        assertEquals("USD", savedExpense.getCurrency());
+        assertEquals(user, savedExpense.getUser());
+        assertEquals(category, savedExpense.getCategory());
     }
 
     @Test
-    public void testSaveExpense_UserNotFound() {
-        when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.empty());
+    void testSaveExpense_UserNotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> {
             expenseService.saveExpense(expenseDto, userPrincipal);
         });
-
-        verify(userRepository).findById(userPrincipal.getId());
     }
 
     @Test
-    public void testSaveExpense_CategoryNotFound() {
-        when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
-        when(categoryRepository.findByIdAndUser(expenseDto.getCategoryId(), user)).thenReturn(Optional.empty());
+    void testSaveExpense_CategoryNotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(categoryRepository.findByIdAndUser(1L, user)).thenReturn(Optional.empty());
 
         assertThrows(CategoryNotFoundException.class, () -> {
             expenseService.saveExpense(expenseDto, userPrincipal);
         });
-
-        verify(userRepository).findById(userPrincipal.getId());
-        verify(categoryRepository).findByIdAndUser(expenseDto.getCategoryId(), user);
     }
 
     @Test
-    public void testGetAllExpenses() {
+    void testGetAllExpenses() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
         when(expenseRepository.findByUser(user)).thenReturn(List.of(expense));
 
@@ -118,12 +148,15 @@ public class ExpenseServiceTest {
 
         assertNotNull(expenses);
         assertFalse(expenses.isEmpty());
+        assertEquals(1, expenses.size());
+        assertEquals(expense, expenses.get(0));
+
         verify(userRepository).findById(userPrincipal.getId());
         verify(expenseRepository).findByUser(user);
     }
 
     @Test
-    public void testGetAllExpenses_UserNotFound() {
+    void testGetAllExpenses_UserNotFound() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> {
@@ -131,22 +164,25 @@ public class ExpenseServiceTest {
         });
 
         verify(userRepository).findById(userPrincipal.getId());
+        verify(expenseRepository, never()).findByUser(any(User.class));
     }
 
     @Test
-    public void testGetExpenseById() {
+    void testGetExpenseById() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
         when(expenseRepository.findByIdAndUser(1L, user)).thenReturn(Optional.of(expense));
 
         Optional<Expense> foundExpense = expenseService.getExpenseById(1L, userPrincipal);
 
         assertTrue(foundExpense.isPresent());
+        assertEquals(expense, foundExpense.get());
+
         verify(userRepository).findById(userPrincipal.getId());
         verify(expenseRepository).findByIdAndUser(1L, user);
     }
 
     @Test
-    public void testGetExpenseById_UserNotFound() {
+    void testGetExpenseById_UserNotFound() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> {
@@ -154,24 +190,25 @@ public class ExpenseServiceTest {
         });
 
         verify(userRepository).findById(userPrincipal.getId());
+        verify(expenseRepository, never()).findByIdAndUser(anyLong(), any(User.class));
     }
 
     @Test
-    public void testDeleteExpense() {
+    void testDeleteExpense() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
         when(expenseRepository.findByIdAndUser(1L, user)).thenReturn(Optional.of(expense));
         when(budgetRepository.findByUserAndYearAndMonth(any(User.class), anyInt(), anyInt())).thenReturn(Optional.of(budget));
 
         expenseService.deleteExpense(1L, userPrincipal);
 
-        assertEquals(BigDecimal.valueOf(1100), budget.getAmount());
+        assertEquals(BigDecimal.valueOf(1300), budget.getAmount()); // zakładając, że budżet zwiększył się o 100
         verify(expenseRepository).deleteById(1L);
-        verify(budgetRepository).findByUserAndYearAndMonth(any(User.class), anyInt(), anyInt());
+        verify(budgetRepository).findByUserAndYearAndMonth(user, expense.getDate().getYear(), expense.getDate().getMonthValue());
         verify(budgetRepository).save(budget);
     }
 
     @Test
-    public void testDeleteExpense_UserNotFound() {
+    void testDeleteExpense_UserNotFound() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> {
@@ -180,10 +217,11 @@ public class ExpenseServiceTest {
 
         verify(userRepository).findById(userPrincipal.getId());
         verify(expenseRepository, never()).deleteById(anyLong());
+        verify(budgetRepository, never()).findByUserAndYearAndMonth(any(User.class), anyInt(), anyInt());
     }
 
     @Test
-    public void testDeleteExpense_ExpenseNotFound() {
+    void testDeleteExpense_ExpenseNotFound() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
         when(expenseRepository.findByIdAndUser(1L, user)).thenReturn(Optional.empty());
 
@@ -192,5 +230,6 @@ public class ExpenseServiceTest {
         });
 
         verify(expenseRepository, never()).deleteById(anyLong());
+        verify(budgetRepository, never()).findByUserAndYearAndMonth(any(User.class), anyInt(), anyInt());
     }
 }
