@@ -34,6 +34,8 @@ public class ExpenseService {
     private UserRepository userRepository;
     @Autowired
     private BudgetRepository budgetRepository;
+    @Autowired
+    private CurrencyConverter currencyConverter;
 
     public Expense saveExpense(ExpenseDto expenseDto, UserPrincipal userPrincipal) {
         User user = userRepository.findById(userPrincipal.getId())
@@ -42,8 +44,11 @@ public class ExpenseService {
         Category category = categoryRepository.findByIdAndUser(expenseDto.getCategoryId(), user)
                 .orElseThrow(CategoryNotFoundException::new);
 
-        Expense expense = ExpenseMapper.fromDTO(expenseDto, category);
-        expense.setUser(user);
+        BigDecimal amount = currencyConverter.convert(expenseDto.getAmount(), expenseDto.getCurrency(), user.getDefaultCurrency());
+        expenseDto.setAmount(amount);
+
+        Expense expense = ExpenseMapper.fromDTO(expenseDto, category, user);
+        expense.setCurrency(user.getDefaultCurrency());
 
         updateBudgetAfterExpense(user, expense.getDate(), expense.getAmount().negate());
 

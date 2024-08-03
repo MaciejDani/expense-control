@@ -38,6 +38,7 @@ public class UserService {
         user.setUsername(registrationDto.getUsername());
         user.setPassword(encodePassword(registrationDto.getPassword()));
         user.setEmail(registrationDto.getEmail());
+        user.setDefaultCurrency(registrationDto.getDefaultCurrency());
 
         userRepository.save(user);
         return "User registered successfully";
