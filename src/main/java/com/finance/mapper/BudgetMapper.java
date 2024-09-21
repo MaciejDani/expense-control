@@ -9,6 +9,7 @@ public class BudgetMapper {
         BudgetDto dto = new BudgetDto();
         dto.setAmount(budget.getAmount());
         dto.setYear(budget.getYear());
+        dto.setInitialAmount(budget.getInitialAmount());
         dto.setMonth(budget.getMonth());
         return dto;
     }
@@ -17,6 +18,7 @@ public class BudgetMapper {
         Budget budget = new Budget();
         budget.setAmount(budgetDto.getAmount());
         budget.setYear(budgetDto.getYear());
+        budget.setInitialAmount(budgetDto.getInitialAmount());
         budget.setMonth(budgetDto.getMonth());
         return budget;
     }

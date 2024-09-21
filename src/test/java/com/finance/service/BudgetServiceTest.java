@@ -46,11 +46,13 @@ public class BudgetServiceTest {
         budgetDto.setYear(2024);
         budgetDto.setMonth(9);
         budgetDto.setAmount(BigDecimal.valueOf(1000));
+        budgetDto.setInitialAmount(BigDecimal.valueOf(1000));
 
         budget = new Budget();
         budget.setYear(2024);
         budget.setMonth(9);
         budget.setAmount(BigDecimal.valueOf(1000));
+        budget.setInitialAmount(BigDecimal.valueOf(1000));
     }
 
     @Test
@@ -63,6 +65,7 @@ public class BudgetServiceTest {
 
         assertNotNull(savedBudget);
         assertEquals(budgetDto.getAmount(), savedBudget.getAmount());
+        assertEquals(budgetDto.getInitialAmount(), savedBudget.getInitialAmount());
         verify(userRepository).findById(userPrincipal.getId());
         verify(budgetRepository).findByUserAndYearAndMonth(user, budgetDto.getYear(), budgetDto.getMonth());
         verify(budgetRepository).save(any(Budget.class));
@@ -78,6 +81,7 @@ public class BudgetServiceTest {
 
         assertNotNull(updatedBudget);
         assertEquals(budgetDto.getAmount(), updatedBudget.getAmount());
+        assertEquals(BigDecimal.valueOf(1000), updatedBudget.getInitialAmount());
         verify(userRepository).findById(userPrincipal.getId());
         verify(budgetRepository).findByUserAndYearAndMonth(user, budgetDto.getYear(), budgetDto.getMonth());
         verify(budgetRepository).save(budget);
@@ -104,6 +108,7 @@ public class BudgetServiceTest {
 
         assertTrue(foundBudget.isPresent());
         assertEquals(budgetDto.getAmount(), foundBudget.get().getAmount());
+        assertEquals(BigDecimal.valueOf(1000), foundBudget.get().getInitialAmount());
         verify(userRepository).findById(userPrincipal.getId());
         verify(budgetRepository).findByUserAndYearAndMonth(user, budgetDto.getYear(), budgetDto.getMonth());
     }

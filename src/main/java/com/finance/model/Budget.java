@@ -28,5 +28,8 @@ public class Budget {
     private int month;
 
     @Column(nullable = false)
+    private BigDecimal initialAmount;
+
+    @Column(nullable = false)
     private BigDecimal amount;
 }
