@@ -4,11 +4,14 @@ import com.finance.dto.ExpenseDto;
 import com.finance.model.Expense;
 import com.finance.security.UserPrincipal;
 import com.finance.service.ExpenseService;
+import com.finance.service.ExportService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +21,9 @@ public class ExpenseController {
 
     @Autowired
     private ExpenseService expenseService;
+
+    @Autowired
+    private ExportService exportService;
 
     @PostMapping("/add")
     public ResponseEntity<Expense> addExpense(@RequestBody ExpenseDto expenseDTO,
@@ -49,5 +55,12 @@ public class ExpenseController {
         expenseService.deleteExpense(id, userPrincipal);
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/export/excel")
+    public void exportExpensesToExcel(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                      HttpServletResponse response) throws IOException {
+        List<Expense> expenses = expenseService.getAllExpenses(userPrincipal);
+        exportService.exportExpensesToExcel(expenses, response);
     }
 }
