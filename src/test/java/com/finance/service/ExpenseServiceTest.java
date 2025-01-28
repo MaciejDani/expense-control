@@ -106,18 +106,18 @@ public class ExpenseServiceTest {
 
         Expense savedExpense = expenseService.saveExpense(expenseDto, userPrincipal);
 
+        assertNotNull(savedExpense);
+        assertEquals(BigDecimal.valueOf(120), savedExpense.getAmount());
+        assertEquals("USD", savedExpense.getCurrency());
+        assertEquals(user, savedExpense.getUser());
+        assertEquals(category, savedExpense.getCategory());
+
         verify(userRepository).findById(1L);
         verify(categoryRepository).findByIdAndUser(1L, user);
         verify(currencyConverter).convert(BigDecimal.valueOf(100), "EUR", "USD");
         verify(expenseRepository).save(any(Expense.class));
         verify(budgetRepository).findByUserAndYearAndMonth(any(User.class), anyInt(), anyInt());
         verify(budgetRepository).save(any(Budget.class));
-
-        assertNotNull(savedExpense);
-        assertEquals(BigDecimal.valueOf(120), savedExpense.getAmount());
-        assertEquals("USD", savedExpense.getCurrency());
-        assertEquals(user, savedExpense.getUser());
-        assertEquals(category, savedExpense.getCategory());
     }
 
     @Test
@@ -127,6 +127,7 @@ public class ExpenseServiceTest {
         assertThrows(UserNotFoundException.class, () -> {
             expenseService.saveExpense(expenseDto, userPrincipal);
         });
+        verify(userRepository).findById(1L);
     }
 
     @Test
@@ -137,6 +138,8 @@ public class ExpenseServiceTest {
         assertThrows(CategoryNotFoundException.class, () -> {
             expenseService.saveExpense(expenseDto, userPrincipal);
         });
+        verify(userRepository).findById(1L);
+        verify(categoryRepository).findByIdAndUser(1L, user);
     }
 
     @Test
