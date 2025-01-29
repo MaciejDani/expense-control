@@ -38,6 +38,10 @@ public class CurrencyConverter {
         if (!conversionRates.containsKey(toCurrency)) {
             throw new CurrencyNotFoundException();
         }
+        try {
         return new BigDecimal(conversionRates.get(toCurrency).toString());
-    }
+    } catch (NumberFormatException e) {
+            throw new InvalidResponseException();
+        }
+        }
 }
