@@ -43,4 +43,14 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>(budgetNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(InvalidResponseException.class)
+    public ResponseEntity<String> handleInvalidResponseException(InvalidResponseException invalidResponseException) {
+        return new ResponseEntity<>(invalidResponseException.getMessage(), HttpStatus.BAD_GATEWAY);
+    }
+
+    @ExceptionHandler(CurrencyNotFoundException.class)
+    public ResponseEntity<String> handleCurrencyNotFoundException (CurrencyNotFoundException currencyNotFoundException) {
+        return new ResponseEntity<>(currencyNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
 }
