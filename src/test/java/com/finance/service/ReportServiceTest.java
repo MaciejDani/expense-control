@@ -53,7 +53,7 @@ public class ReportServiceTest {
         );
 
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
-        when(expenseRepository.findByYearAndMonthAndUser(2023, 5, user)).thenReturn(expenses);
+        when(expenseRepository.findByYearAndMonthAndUser(2023, 5, userPrincipal.getId())).thenReturn(expenses);
 
         MonthlySummary summary = reportService.getMonthlySummary(2023, 5, userPrincipal);
 
@@ -62,7 +62,7 @@ public class ReportServiceTest {
         assertEquals(new BigDecimal("30.00"), summary.getCategorySum().get("Food"));
 
         verify(userRepository).findById(userPrincipal.getId());
-        verify(expenseRepository).findByYearAndMonthAndUser(2023, 5, user);
+        verify(expenseRepository).findByYearAndMonthAndUser(2023, 5, userPrincipal.getId());
     }
 
     @Test
@@ -79,7 +79,7 @@ public class ReportServiceTest {
     @Test
     public void testGetTotalExpensesForMonth() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
-        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 5, user)).thenReturn(new BigDecimal("100.00"));
+        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 5, userPrincipal.getId())).thenReturn(new BigDecimal("100.00"));
 
         BigDecimal totalExpenses = reportService.getTotalExpensesForMonth(2023, 5, userPrincipal);
 
@@ -87,7 +87,7 @@ public class ReportServiceTest {
         assertEquals(new BigDecimal("100.00"), totalExpenses);
 
         verify(userRepository).findById(userPrincipal.getId());
-        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 5, user);
+        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 5, userPrincipal.getId());
     }
 
     @Test
@@ -104,8 +104,8 @@ public class ReportServiceTest {
     @Test
     public void testCompareExpenses() {
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
-        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 5, user)).thenReturn(new BigDecimal("100.00"));
-        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 6, user)).thenReturn(new BigDecimal("150.00"));
+        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 5, userPrincipal.getId())).thenReturn(new BigDecimal("100.00"));
+        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 6, userPrincipal.getId())).thenReturn(new BigDecimal("150.00"));
 
         ExpenseComparison comparison = reportService.compareExpenses(2023, 5, 2023, 6, userPrincipal);
 
@@ -114,8 +114,8 @@ public class ReportServiceTest {
         assertEquals(new BigDecimal("150.00"), comparison.getEndPeriodExpenses());
 
         verify(userRepository).findById(userPrincipal.getId());
-        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 5, user);
-        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 6, user);
+        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 5, userPrincipal.getId());
+        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 6, userPrincipal.getId());
     }
 
     @Test
@@ -133,9 +133,9 @@ public class ReportServiceTest {
     public void testGetExpensesForMultipleMonths() {
         List<YearMonthDto> yearMonthList = List.of(new YearMonthDto(2023, 5), new YearMonthDto(2023, 6), new YearMonthDto(2023, 7));
         when(userRepository.findById(userPrincipal.getId())).thenReturn(Optional.of(user));
-        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 5, user)).thenReturn(new BigDecimal("100.00"));
-        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 6, user)).thenReturn(new BigDecimal("150.00"));
-        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 7, user)).thenReturn(new BigDecimal("200.00"));
+        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 5, userPrincipal.getId())).thenReturn(new BigDecimal("100.00"));
+        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 6, userPrincipal.getId())).thenReturn(new BigDecimal("150.00"));
+        when(expenseRepository.findTotalExpensesByYearAndMonthAndUser(2023, 7, userPrincipal.getId())).thenReturn(new BigDecimal("200.00"));
 
         List<MonthlyExpense> expenses = reportService.getExpensesForMultipleMonths(yearMonthList, userPrincipal);
 
@@ -146,9 +146,9 @@ public class ReportServiceTest {
         assertEquals(new BigDecimal("200.00"), expenses.get(2).getTotalExpenses());
 
         verify(userRepository).findById(userPrincipal.getId());
-        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 5, user);
-        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 6, user);
-        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 7, user);
+        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 5, userPrincipal.getId());
+        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 6, userPrincipal.getId());
+        verify(expenseRepository).findTotalExpensesByYearAndMonthAndUser(2023, 7, userPrincipal.getId());
     }
 
     @Test

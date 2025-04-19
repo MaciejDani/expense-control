@@ -16,7 +16,6 @@ public class ExportService {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Expenses");
 
-        // Nagłówki kolumn
         Row headerRow = sheet.createRow(0);
         String[] headers = {"ID", "Category", "Amount", "Date", "Description", "Currency"};
         for (int i = 0; i < headers.length; i++) {
@@ -25,7 +24,6 @@ public class ExportService {
             cell.setCellStyle(createHeaderStyle(workbook));
         }
 
-        // Dane o wydatkach
         int rowIdx = 1;
         for (Expense expense : expenses) {
             Row row = sheet.createRow(rowIdx++);
@@ -37,12 +35,10 @@ public class ExportService {
             row.createCell(5).setCellValue(expense.getCurrency());
         }
 
-        // Dopasowanie szerokości kolumn
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }
 
-        // Ustawienie odpowiedzi HTTP
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=expenses.xlsx");
 
