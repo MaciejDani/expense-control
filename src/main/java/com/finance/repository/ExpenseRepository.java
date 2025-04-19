@@ -14,11 +14,11 @@ import java.util.Optional;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
-    @Query("SELECT e FROM Expense e WHERE YEAR(e.date) = :year AND MONTH(e.date) = :month AND e.user = :user")
-    List<Expense> findByYearAndMonthAndUser(@Param("year") int year, @Param("month") int month, @Param("user") User user);
+    @Query("SELECT e FROM Expense e WHERE YEAR(e.date) = :year AND MONTH(e.date) = :month AND e.user.id = :userId")
+    List<Expense> findByYearAndMonthAndUser(@Param("year") int year, @Param("month") int month, @Param("userId") Long userId);
 
-    @Query("SELECT SUM(e.amount) FROM Expense e WHERE YEAR(e.date) = :year AND MONTH(e.date) = :month AND e.user = :user")
-    BigDecimal findTotalExpensesByYearAndMonthAndUser(@Param("year") int year, @Param("month") int month, @Param("user") User user);
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE YEAR(e.date) = :year AND MONTH(e.date) = :month AND e.user.id = :userId")
+    BigDecimal findTotalExpensesByYearAndMonthAndUser(@Param("year") int year, @Param("month") int month, @Param("userId") Long userId);
 
     List<Expense> findByUser(User user);
     Optional<Expense> findByIdAndUser(Long Id, User user);
