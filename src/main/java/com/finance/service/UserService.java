@@ -4,6 +4,7 @@ import com.finance.dto.LoginDto;
 import com.finance.dto.RegistrationDto;
 import com.finance.exception.EmailAlreadyInUseException;
 import com.finance.exception.InvalidLoginException;
+import com.finance.exception.UserNotFoundException;
 import com.finance.exception.UsernameAlreadyTakenException;
 import com.finance.model.User;
 import com.finance.repository.UserRepository;
@@ -58,6 +59,13 @@ public class UserService {
         } catch (Exception ex) {
             throw new InvalidLoginException();
         }
+    }
+
+    public String getDefaultCurrencyForUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+
+        return user.getDefaultCurrency();
     }
 
     public String encodePassword(String password) {

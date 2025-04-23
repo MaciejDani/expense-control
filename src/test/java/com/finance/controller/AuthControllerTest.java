@@ -34,6 +34,7 @@ public class AuthControllerTest {
     public void setUp() {
         registrationDto = new RegistrationDto();
         loginDto = new LoginDto();
+        loginDto.setUsername("testUser");
         jwt = "test-jwt-token";
         registrationResult = "User registered successfully";
     }
@@ -53,12 +54,13 @@ public class AuthControllerTest {
     @Test
     public void testAuthenticateUser() {
         when(userService.authenticateUser(any(LoginDto.class))).thenReturn(jwt);
+        when(userService.getDefaultCurrencyForUser(anyString())).thenReturn("PLN");
 
         ResponseEntity<?> response = authController.authenticateUser(loginDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(new JwtAuthenticationResponseDto(jwt), response.getBody());
+        assertEquals(new JwtAuthenticationResponseDto(jwt, "PLN"), response.getBody());
         verify(userService).authenticateUser(any(LoginDto.class));
     }
 }
