@@ -26,8 +26,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginDto loginDto) {
         String jwt = userService.authenticateUser(loginDto);
+        String currency = userService.getDefaultCurrencyForUser(loginDto.getUsername());
 
-        return ResponseEntity.ok(new JwtAuthenticationResponseDto(jwt));
+        return ResponseEntity.ok(new JwtAuthenticationResponseDto(jwt, currency));
 
       }
 }
