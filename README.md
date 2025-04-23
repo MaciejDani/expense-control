@@ -10,8 +10,8 @@ Expense Control App is an application for managing expenses, allowing users to t
 - **Java 21**
 - **Spring Boot**
 - **Spring Security** (user authentication and login)
-- **H2 Database** (local database)
-- **Docker** (application containerization)
+- **PostgreSQL** (production-ready database)
+- **Docker** (containerization of backend and database)
 - **Apache POI** (Excel export)
 - **External Api** for currency conversion
 - **JUnit & Mockito** (unit testing)
@@ -19,20 +19,17 @@ Expense Control App is an application for managing expenses, allowing users to t
 
 ## Installation
 
-1. Classic installation
+
+Running with Docker
 
 ```bash
 git clone https://github.com/MaciejDani/expense-control.git
 cd expense-control
-mvn clean package
-java -jar target/expense-control-0.0.1-SNAPSHOT.jar
+./mvnw clean package -DskipTests
+docker-compose up --build -d
 ```
-2. Running with Docker
-
-```bash
-docker build -t expense-control-app .
-docker run -p 8080:8080 expense-control-app
-```
+- The backend will be available at: http://localhost:8080
+- PostgreSQL runs inside a container on port 5432
 
 
 
